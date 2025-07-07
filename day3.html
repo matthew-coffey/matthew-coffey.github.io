@@ -1,0 +1,402 @@
+<html>
+<head>
+	
+	<title>Day Three</title>
+
+<script language="javascript" type="text/javascript">
+<!--
+
+/*
+Image w/ description tooltip- By Dynamic Web Coding (www.dyn-web.com)
+Copyright 2002 by Sharon Paine
+Visit http://www.dynamicdrive.com for this script
+*/
+
+/* IMPORTANT: Put script after tooltip div or 
+put tooltip div just before </BODY>. */
+
+var dom = (document.getElementById) ? true : false;
+var ns5 = ((navigator.userAgent.indexOf("Gecko")>-1) && dom) ? true: false;
+var ie5 = ((navigator.userAgent.indexOf("MSIE")>-1) && dom) ? true : false;
+var ns4 = (document.layers && !dom) ? true : false;
+var ie4 = (document.all && !dom) ? true : false;
+var nodyn = (!ns5 && !ns4 && !ie4 && !ie5) ? true : false;
+
+// resize fix for ns4
+var origWidth, origHeight;
+if (ns4) {
+origWidth = window.innerWidth; origHeight = window.innerHeight;
+window.onresize = function() { if (window.innerWidth != origWidth || window.innerHeight != origHeight) history.go(0); }
+}
+
+// avoid error of passing event object in older browsers
+if (nodyn) { event = "nope" }
+
+/////////////////////// CUSTOMIZE HERE ////////////////////
+// settings for tooltip 
+// Do you want tip to move when mouse moves over link?
+var tipFollowMouse= true; 
+// Be sure to set tipWidth wide enough for widest image
+var tipWidth= 165;
+var offX= 20; // how far from mouse to show tip
+var offY= 12; 
+var tipFontFamily= "Verdana, arial, helvetica, sans-serif";
+var tipFontSize= "8pt";
+// set default text color and background color for tooltip here
+// individual tooltips can have their own (set in messages arrays)
+// but don't have to
+var tipFontColor= "#000000";
+var tipBgColor= "#FFFFFF"; 
+var tipBorderColor= "#000000";
+var tipBorderWidth= 1;
+var tipBorderStyle= "ridge";
+var tipPadding= 4;
+
+// tooltip content goes here (image, description, optional bgColor, optional textcolor)
+var messages = new Array();
+// multi-dimensional arrays containing: 
+// image and text for tooltip
+// optional: bgColor and color to be sent to tooltip
+messages[0] = new Array('images/day3_thumb1.jpg','We started having to climb the steep ascent to Helvellyn but fortunately we turned off early on.',"#FFFFFF");
+messages[1] = new Array('images/day3_thumb2.jpg','We walked along Grisedale (the valley here) and despite low cloud - seen on Dollywagen Pike - we enjoyed reasonable weather.',"#FFFFFF");
+messages[2] = new Array('images/day3_thumb3.jpg','Skirting around the un-pathed Grisedale Tarn was very reminiscent of Dartmoor.',"#FFFFFF");
+messages[3] = new Array('images/day3_thumb4.jpg','This was our descent from Grisedale Tarn. It was very steep and it would have been easy for one of us to twist an ankle on the lose rocks. Luckily we didnt',"#FFFFFF");
+messages[4] = new Array('images/day3_thumb5.jpg','Here are the waterfalls of Wyth Burn alongside which our route took us.',"#FFFFFF");
+messages[5] = new Array('images/day3_thumb6.jpg','Looking back at the marshy plain we had walked along after climbing beside the waterfalls.',"#FFFFFF");
+messages[6] = new Array('images/day3_thumb7.jpg','This is at the bottom of the descent from Lining Crag which was very slippery and required lots of concentration.',"#FFFFFF");
+messages[7] = new Array('images/day3_thumb8.jpg','This was the worst campsite with no facilities except for a run-down toilet. Again it rained as we got there.',"#FFFFFF");
+
+//////////////////// END OF CUSTOMIZATION AREA ///////////////////
+
+// preload images that are to appear in tooltip
+// from arrays above
+if (document.images) {
+var theImgs = new Array();
+for (var i=0; i<messages.length; i++) {
+theImgs[i] = new Image();
+theImgs[i].src = messages[i][0];
+}
+}
+
+// to layout image and text, 2-row table, image centered in top cell
+// these go in var tip in doTooltip function
+// startStr goes before image, midStr goes between image and text
+var startStr = '<table width="' + tipWidth + '"><tr><td align="center" width="100%"><img src="';
+var midStr = '" border="0"></td></tr><tr><td valign="top">';
+var endStr = '</td></tr></table>';
+
+////////////////////////////////////////////////////////////
+// initTip - initialization for tooltip.
+// Global variables for tooltip. 
+// Set styles for all but ns4. 
+// Set up mousemove capture if tipFollowMouse set true.
+////////////////////////////////////////////////////////////
+var tooltip, tipcss;
+function initTip() {
+if (nodyn) return;
+tooltip = (ns4)? document.tipDiv.document: (ie4)? document.all['tipDiv']: (ie5||ns5)? document.getElementById('tipDiv'): null;
+tipcss = (ns4)? document.tipDiv: tooltip.style;
+if (ie4||ie5||ns5) { // ns4 would lose all this on rewrites
+tipcss.width = tipWidth+"px";
+tipcss.fontFamily = tipFontFamily;
+tipcss.fontSize = tipFontSize;
+tipcss.color = tipFontColor;
+tipcss.backgroundColor = tipBgColor;
+tipcss.borderColor = tipBorderColor;
+tipcss.borderWidth = tipBorderWidth+"px";
+tipcss.padding = tipPadding+"px";
+tipcss.borderStyle = tipBorderStyle;
+}
+if (tooltip&&tipFollowMouse) {
+if (ns4) document.captureEvents(Event.MOUSEMOVE);
+document.onmousemove = trackMouse;
+}
+}
+
+window.onload = initTip;
+
+/////////////////////////////////////////////////
+// doTooltip function
+// Assembles content for tooltip and writes 
+// it to tipDiv
+/////////////////////////////////////////////////
+var t1,t2; // for setTimeouts
+var tipOn = false; // check if over tooltip link
+function doTooltip(evt,num) {
+if (!tooltip) return;
+if (t1) clearTimeout(t1); if (t2) clearTimeout(t2);
+tipOn = true;
+// set colors if included in messages array
+if (messages[num][2]) var curBgColor = messages[num][2];
+else curBgColor = tipBgColor;
+if (messages[num][3]) var curFontColor = messages[num][3];
+else curFontColor = tipFontColor;
+if (ns4) {
+var tip = '<table bgcolor="' + tipBorderColor + '" width="' + tipWidth + '" cellspacing="0" cellpadding="' + tipBorderWidth + '" border="0"><tr><td><table bgcolor="' + curBgColor + '" width="100%" cellspacing="0" cellpadding="' + tipPadding + '" border="0"><tr><td>'+ startStr + messages[num][0] + midStr + '<span style="font-family:' + tipFontFamily + '; font-size:' + tipFontSize + '; color:' + curFontColor + ';">' + messages[num][1] + '</span>' + endStr + '</td></tr></table></td></tr></table>';
+tooltip.write(tip);
+tooltip.close();
+} else if (ie4||ie5||ns5) {
+var tip = startStr + messages[num][0] + midStr + '<span style="font-family:' + tipFontFamily + '; font-size:' + tipFontSize + '; color:' + curFontColor + ';">' + messages[num][1] + '</span>' + endStr;
+tipcss.backgroundColor = curBgColor;
+tooltip.innerHTML = tip;
+}
+if (!tipFollowMouse) positionTip(evt);
+else t1=setTimeout("tipcss.visibility='visible'",100);
+}
+
+var mouseX, mouseY;
+function trackMouse(evt) {
+mouseX = (ns4||ns5)? evt.pageX: window.event.clientX + document.body.scrollLeft;
+mouseY = (ns4||ns5)? evt.pageY: window.event.clientY + document.body.scrollTop;
+if (tipOn) positionTip(evt);
+}
+
+/////////////////////////////////////////////////////////////
+// positionTip function
+// If tipFollowMouse set false, so trackMouse function
+// not being used, get position of mouseover event.
+// Calculations use mouseover event position, 
+// offset amounts and tooltip width to position
+// tooltip within window.
+/////////////////////////////////////////////////////////////
+function positionTip(evt) {
+if (!tipFollowMouse) {
+mouseX = (ns4||ns5)? evt.pageX: window.event.clientX + document.body.scrollLeft;
+mouseY = (ns4||ns5)? evt.pageY: window.event.clientY + document.body.scrollTop;
+}
+// tooltip width and height
+var tpWd = (ns4)? tooltip.width: (ie4||ie5)? tooltip.clientWidth: tooltip.offsetWidth;
+var tpHt = (ns4)? tooltip.height: (ie4||ie5)? tooltip.clientHeight: tooltip.offsetHeight;
+// document area in view (subtract scrollbar width for ns)
+var winWd = (ns4||ns5)? window.innerWidth-20+window.pageXOffset: document.body.clientWidth+document.body.scrollLeft;
+var winHt = (ns4||ns5)? window.innerHeight-20+window.pageYOffset: document.body.clientHeight+document.body.scrollTop;
+// check mouse position against tip and window dimensions
+// and position the tooltip 
+if ((mouseX+offX+tpWd)>winWd) 
+tipcss.left = (ns4)? mouseX-(tpWd+offX): mouseX-(tpWd+offX)+"px";
+else tipcss.left = (ns4)? mouseX+offX: mouseX+offX+"px";
+if ((mouseY+offY+tpHt)>winHt) 
+tipcss.top = (ns4)? winHt-(tpHt+offY): winHt-(tpHt+offY)+"px";
+else tipcss.top = (ns4)? mouseY+offY: mouseY+offY+"px";
+if (!tipFollowMouse) t1=setTimeout("tipcss.visibility='visible'",100);
+}
+
+function hideTip() {
+if (!tooltip) return;
+t2=setTimeout("tipcss.visibility='hidden'",100);
+tipOn = false;
+}
+
+//-->
+</script>
+
+
+
+
+
+<style>
+<!--
+* {color:#000000; font-family:verdana; font-size:11px;}
+a {color:#0099FF; font-family:verdana; font-size:11px; text-decoration: none} 
+a:hover {color:#5EC054; font-family:verdana; font-size:11px; color: #5EC054; text-decoration: none;} 
+-->
+</style>
+
+
+
+
+</head>
+
+<body topmargin="0" bgcolor="#FFFFFF">
+
+
+
+<div align="center">
+  <center>
+	  	  <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" width="728" id="AutoNumber1" background="images/layoutbg.gif">
+    <tr>
+      <td width="100%">
+      <img border="0" src="images/header.jpg" alt="Duke of Edinburgh Award Scheme" width="728"></td>
+    </tr>
+    <tr>
+      <td width="100%">
+			
+
+      </td>
+    </tr>
+    <tr>
+      <td width="100%">
+      <img border="0" src="images/adbottom.gif" width="728" height="6"></td>
+    </tr>
+    <tr>
+      <td width="100%">
+      <img border="0" src="images/bar01.gif" width="2" height="15">
+
+<a href="home.html"><img border="0" src="images/channel01.gif" width="93" height="15"></a><a href="day1.html"><img border="0" src="images/channel02.gif" width="93" height="15"></a><a href="day2.html"><img border="0" src="images/channel03.gif" width="93" height="15"></a><a href="day3.html"><img border="0" src="images/channel04.gif" width="93" height="15"></a><a href="day4.html"><img border="0" src="images/channel05.gif" width="93" height="15"></a><a href="pictures.html"><img border="0" src="images/channel06.gif" width="93" height="15"></a><a href="maps.html"><img border="0" src="images/channel07.gif" width="93" height="15"></a>
+     </td>
+    </tr>
+    <tr>
+      <td width="100%">
+      <img border="0" src="images/barbottom.gif" width="728" height="20"></td>
+    </tr>
+    <tr>
+      <td width="100%">
+      <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" width="100%" id="AutoNumber6">
+        <tr>
+          <td width="520" valign="top">
+      <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" width="100%" id="AutoNumber2">
+        <tr>
+          <td width="100%" valign="top">
+          <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" width="100%" id="AutoNumber3">
+                   <tr>
+          <tr>
+
+            </tr>
+          </table>
+          </td>
+                 <tr>
+          <td width="100%" valign="top" colspan="2" height="11">
+          </td>
+        </tr>
+ 
+
+
+<td width="100%" valign="top" colspan="2" height="11">
+          <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" width="100%" id="AutoNumber4">
+            <tr>
+              <td width="13">&nbsp;</td>
+              <td width="500" valign="top">
+              
+          
+          <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" width="100%" id="AutoNumber4">
+            <tr>
+              <td width="500" valign="top">
+							
+
+<table border="0" cellpadding="3" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="100%" id="AutoNumber5">
+  <tr>
+    <td width="100%"><font style="font-size: 12px" face="Verdana" color="black">
+
+<img src="images/daythree.jpg" width="500">
+<div align="justify">
+
+<p>
+
+<a name="partI"></a><img src="images/day3_1.jpg" border=0 usemap="#imgmap2">
+
+<map name="imgmap2">
+    <area shape="rect" coords="374,26,404,53" a href="images/LakeDistrict_DofE035.jpg" onmouseover="doTooltip(event,0)" onmouseout="hideTip()">
+    <area shape="rect" coords="283,204,312,233" a href="images/LakeDistrict_DofE037.jpg" onmouseover="doTooltip(event,1)" onmouseout="hideTip()">
+    </map>
+
+<p>The initial climb of the day was very steep and a shock so early on. However once the path for Striding Edge forked off, we descended down into Grisedale and walked, in the sunshine, along a good path for about 2km.<p>We then had a short, steep climb to reach the saddle between Dollywahen Pike and Fairfield. The climb was much more 'typically Lake District' than any other previously as the path was well layed with large rock steps. But by the time we reached Ruthwaite Lodge we were hot and tired. But on time it started raining, we had cooled down and continued our, now more shallow, ascent to Grisedale Tarn.<p>
+
+<a name="partII"></a><img src="images/day3_2.jpg" border=0 usemap="#imgmap3">
+
+<map name="imgmap3">
+    <area shape="rect" coords="342,183,371,212" a href="images/LakeDistrict_DofE040.jpg" onmouseover="doTooltip(event,2)" onmouseout="hideTip()">
+    <area shape="rect" coords="130,225,161,252" a href="images/LakeDistrict_DofE041.jpg" onmouseover="doTooltip(event,3)" onmouseout="hideTip()">
+    </map>
+
+<p>The final part of the ascent to Grisedale Tarn was actually quite easy as we walked around staying, roughly, on the same contour. At the tarn we had to make our own path to the other side which emphasised just how much better the paths are in the Lake District compared to Dartmoor.<p>On the other side we prepared for a very sharp descent down to the main road. It was quite slippery and a few people did fall although incurred no major injuries. As we reached the bottom the nice weather gave up and it heavily rained. Our route took us parallel to the main road on a pretty poor path and it wasn't a particularly fun part of the day.<p>We had lunch near Steel End in an unused barn which meant that for once we were dry while eating despite it still raining outside. We were about halfway through the day and set off, after lunch, on a reasonably good path beside Wyth Burn.<p>
+
+<a name="partIII"></a><img src="images/day3_3.jpg" border=0 usemap="#imgmap4">
+
+<map name="imgmap4">
+    <area shape="rect" coords="373,180,400,205" a href="images/LakeDistrict_DofE042.jpg" onmouseover="doTooltip(event,4)" onmouseout="hideTip()">
+    <area shape="rect" coords="215,255,244,281" a href="images/LakeDistrict_DofE043.jpg" onmouseover="doTooltip(event,5)" onmouseout="hideTip()">
+    <area shape="rect" coords="14,111,39,141" a href="images/LakeDistrict_DofE045.jpg" onmouseover="doTooltip(event,6)" onmouseout="hideTip()">
+    </map>
+
+<p>The walk along Wyth Burn was flat until we reached the waterfalls, but even the climb here was not difficult. However once we had finished ascending the terrain became much more difficult to walk in. It was now all marsh and we were constantly going in knee deep. This also made our progress slow as we had to find ways around the larger bogs.<p>One of the other groups, having already climbed Helvellyn that day, caught us up in this marshy section and we continued on together, making a 'very' make-shift path on the way up to Lining Crag.<p>Arriving at this Crag we looked over and almost contemplated trying to descend a near vertical cliff until we saw the path bearing down to our right. This descent, however, was not easy. In fact it was one of the hardest bits of walking we had to do. It had been raining very hard for a couple of hours and so the path (made from large rock steps - like the one's we enjoyed climbing earlier) became deadly slippery. Everyone had to take great care in descending, and something that was only about 500m long took a rather long time.<p>Once we had reached the bottom though we saw that it was all flat until the campsite and along a good path.<p>
+
+<a name="partIV"></a><img src="images/day3_4.jpg" border=0 usemap="#imgmap5">
+
+<map name="imgmap5">
+    <area shape="rect" coords="223,173,252,202" a href="images/LakeDistrict_DofE046.jpg" onmouseover="doTooltip(event,7)" onmouseout="hideTip()">
+    </map>
+
+<p>The other group had forged on ahead of us, so to make up time some of our group tried to make the daring crossing of Stonethwaite Beck. Precariously balanced on mossy rocks only one of us made it over so the rest of the group had to walk and then double-back on themselves at Stonethwaite (but as it had briefly stopped raining it wasn't too bad).<p>The campsite was not one to remember. Minimal facilities can be dealt with but it was infected by midges: they had rarely bothered us before - only really when stopped by rivers - but never to the extent that they did here, especially the next morning.<p>It rained literally as we started pitching our tents but it wasn't hard nor lasted long. Therefore we managed to eat in the dry and prepare for our final day.
+
+
+</div></td>
+
+
+
+
+</tr>
+</table>
+
+
+
+              </td>
+              	
+</td>
+              <td width="11">&nbsp;</td>
+            </tr>
+          </table>
+              </td>
+            </tr>
+          </table>
+          </td>
+        </tr>
+      </table>
+      
+          </td>
+          <td width="190" valign="top">
+          <font style="font-size: 12px" face="Verdana" color="black"><p><p>
+         <b>Page Navigation</b><br>
+          » <a href="#partI" class="page">Part I</a><br>
+          » <a href="#partII" class="page">Part II</a><br>
+          » <a href="#partIII" class="page">Part III</a><br>
+          » <a href="#partIV" class="page">Part IV</a><br>
+                    <p>
+          <b>Links</b><br>
+          » <a href="home.html">Home</a><br>
+          » <a href="http://www.theaward.org/">theaward.org</a><br>
+          » <a href="http://www.abingdon.org.uk/">Abingdon School</a><br>
+                    <p>
+          <b>Trip Summary</b><br>
+          <a href="day1.html">Day 1</a><br>
+          Birkett Mire - Waterside House<br>(22 kilometres)<p>
+          <a href="day2.html">Day 2</a><br>
+          Waterside House - Gillside<br>(21 kilometres)<p>
+          <a href="day3.html">Day 3</a><br>
+          Gillside - Stonethwaite<br>(20 kilometres)<p>
+          <a href="day4.html">Day 4</a><br>
+          Stonethwaite - Elterwater<br>(18 kilometres)<p>
+          <br><p>
+          <b>Weather Forecast - <br>Day Three</b><p>
+          <center><img src="images/weather3.jpg"></center><p>The best day so far, although that really wasn't saying much. It rained less and the sun did come out occasionally but it wasn't the hot, sunny weather we had been led to believe.
+          <p><b>Day Statistics</b><br>
+          » Total Distance:<p><center>20.3 Kilometres</center><p>
+          » Intended Departure Time:<p><center>6.30am</center><p>
+          » Actual Departure Time:<p><center>7.40am</center><p>
+          » Arrival Time:<p><center>4.30pm</center><p>
+          » Terrain:<p><center>Mountainous: luckily we didn't choose to climb Helvellyn like one of the other groups but there was still a lot of climbing. Also it was often very marshy (towards the end of the day) which reminded me too much of Dartmoor.</center><p>
+
+
+                             </font></td>
+
+
+
+
+     </tr>
+    </table>
+      </td>
+    </tr>
+    <tr>
+      <td width="100%">
+      <img border="0" src="images/bottom.gif" width="728" height="8"></td>
+    </tr>
+    </table>
+  </center>
+</div>
+
+<p><br><center>© 2005 Matthew Coffey. All rights reserved.
+
+<div id="tipDiv" style="position:absolute; visibility:hidden; z-index:100"></div>
+
+</body>
+</html>
+ 

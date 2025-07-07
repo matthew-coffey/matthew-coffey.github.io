@@ -1,0 +1,406 @@
+<html>
+<head>
+	
+	<title>Day Four</title>
+
+<script language="javascript" type="text/javascript">
+<!--
+
+/*
+Image w/ description tooltip- By Dynamic Web Coding (www.dyn-web.com)
+Copyright 2002 by Sharon Paine
+Visit http://www.dynamicdrive.com for this script
+*/
+
+/* IMPORTANT: Put script after tooltip div or 
+put tooltip div just before </BODY>. */
+
+var dom = (document.getElementById) ? true : false;
+var ns5 = ((navigator.userAgent.indexOf("Gecko")>-1) && dom) ? true: false;
+var ie5 = ((navigator.userAgent.indexOf("MSIE")>-1) && dom) ? true : false;
+var ns4 = (document.layers && !dom) ? true : false;
+var ie4 = (document.all && !dom) ? true : false;
+var nodyn = (!ns5 && !ns4 && !ie4 && !ie5) ? true : false;
+
+// resize fix for ns4
+var origWidth, origHeight;
+if (ns4) {
+origWidth = window.innerWidth; origHeight = window.innerHeight;
+window.onresize = function() { if (window.innerWidth != origWidth || window.innerHeight != origHeight) history.go(0); }
+}
+
+// avoid error of passing event object in older browsers
+if (nodyn) { event = "nope" }
+
+/////////////////////// CUSTOMIZE HERE ////////////////////
+// settings for tooltip 
+// Do you want tip to move when mouse moves over link?
+var tipFollowMouse= true; 
+// Be sure to set tipWidth wide enough for widest image
+var tipWidth= 165;
+var offX= 20; // how far from mouse to show tip
+var offY= 12; 
+var tipFontFamily= "Verdana, arial, helvetica, sans-serif";
+var tipFontSize= "8pt";
+// set default text color and background color for tooltip here
+// individual tooltips can have their own (set in messages arrays)
+// but don't have to
+var tipFontColor= "#000000";
+var tipBgColor= "#FFFFFF"; 
+var tipBorderColor= "#000000";
+var tipBorderWidth= 1;
+var tipBorderStyle= "ridge";
+var tipPadding= 4;
+
+// tooltip content goes here (image, description, optional bgColor, optional textcolor)
+var messages = new Array();
+// multi-dimensional arrays containing: 
+// image and text for tooltip
+// optional: bgColor and color to be sent to tooltip
+messages[0] = new Array('images/day4_thumb1.jpg','As we awoke the sun was shining. It was our final day and we had perfect weather: the swarms of midges were slighty annoying though.',"#FFFFFF");
+messages[1] = new Array('images/day4_thumb2.jpg','The valley along Langstrath Beck was flat and the path was very walkable. Finally we could enjoy walking.',"#FFFFFF");
+messages[2] = new Array('images/day4_thumb3.jpg','The other group had the same route as us. Here we both rest before starting our only climb of the day.',"#FFFFFF");
+messages[3] = new Array('images/day4_thumb4.jpg','This is the waterfall (Stake Beck) which was beside our single climb of the day. Very Picturesque, it made the climb slighty easier.',"#FFFFFF");
+messages[4] = new Array('images/day4_thumb5.jpg','Us at the bottom of Langdale Combe with a striaght, flat walk to our final destination.',"#FFFFFF");
+messages[5] = new Array('images/day4_thumb6.jpg','The Cumbrian Way was so good that our pace accelerated.',"#FFFFFF");
+messages[6] = new Array('images/day4_thumb7.jpg','The final few kilometres were actually quite difficult as we just wanted the finish.',"#FFFFFF");
+messages[7] = new Array('images/day4_thumb8.jpg','As we entered Elswater we had about 10 minutes until our 1.00pm which as a group we felt we now had to achieve or else we failed. ',"#FFFFFF");
+messages[8] = new Array('images/day4_thumb9.jpg','Despite getting lost and having to run about 200m we made it by about 4 minutes.',"#FFFFFF");
+
+//////////////////// END OF CUSTOMIZATION AREA ///////////////////
+
+// preload images that are to appear in tooltip
+// from arrays above
+if (document.images) {
+var theImgs = new Array();
+for (var i=0; i<messages.length; i++) {
+theImgs[i] = new Image();
+theImgs[i].src = messages[i][0];
+}
+}
+
+// to layout image and text, 2-row table, image centered in top cell
+// these go in var tip in doTooltip function
+// startStr goes before image, midStr goes between image and text
+var startStr = '<table width="' + tipWidth + '"><tr><td align="center" width="100%"><img src="';
+var midStr = '" border="0"></td></tr><tr><td valign="top">';
+var endStr = '</td></tr></table>';
+
+////////////////////////////////////////////////////////////
+// initTip - initialization for tooltip.
+// Global variables for tooltip. 
+// Set styles for all but ns4. 
+// Set up mousemove capture if tipFollowMouse set true.
+////////////////////////////////////////////////////////////
+var tooltip, tipcss;
+function initTip() {
+if (nodyn) return;
+tooltip = (ns4)? document.tipDiv.document: (ie4)? document.all['tipDiv']: (ie5||ns5)? document.getElementById('tipDiv'): null;
+tipcss = (ns4)? document.tipDiv: tooltip.style;
+if (ie4||ie5||ns5) { // ns4 would lose all this on rewrites
+tipcss.width = tipWidth+"px";
+tipcss.fontFamily = tipFontFamily;
+tipcss.fontSize = tipFontSize;
+tipcss.color = tipFontColor;
+tipcss.backgroundColor = tipBgColor;
+tipcss.borderColor = tipBorderColor;
+tipcss.borderWidth = tipBorderWidth+"px";
+tipcss.padding = tipPadding+"px";
+tipcss.borderStyle = tipBorderStyle;
+}
+if (tooltip&&tipFollowMouse) {
+if (ns4) document.captureEvents(Event.MOUSEMOVE);
+document.onmousemove = trackMouse;
+}
+}
+
+window.onload = initTip;
+
+/////////////////////////////////////////////////
+// doTooltip function
+// Assembles content for tooltip and writes 
+// it to tipDiv
+/////////////////////////////////////////////////
+var t1,t2; // for setTimeouts
+var tipOn = false; // check if over tooltip link
+function doTooltip(evt,num) {
+if (!tooltip) return;
+if (t1) clearTimeout(t1); if (t2) clearTimeout(t2);
+tipOn = true;
+// set colors if included in messages array
+if (messages[num][2]) var curBgColor = messages[num][2];
+else curBgColor = tipBgColor;
+if (messages[num][3]) var curFontColor = messages[num][3];
+else curFontColor = tipFontColor;
+if (ns4) {
+var tip = '<table bgcolor="' + tipBorderColor + '" width="' + tipWidth + '" cellspacing="0" cellpadding="' + tipBorderWidth + '" border="0"><tr><td><table bgcolor="' + curBgColor + '" width="100%" cellspacing="0" cellpadding="' + tipPadding + '" border="0"><tr><td>'+ startStr + messages[num][0] + midStr + '<span style="font-family:' + tipFontFamily + '; font-size:' + tipFontSize + '; color:' + curFontColor + ';">' + messages[num][1] + '</span>' + endStr + '</td></tr></table></td></tr></table>';
+tooltip.write(tip);
+tooltip.close();
+} else if (ie4||ie5||ns5) {
+var tip = startStr + messages[num][0] + midStr + '<span style="font-family:' + tipFontFamily + '; font-size:' + tipFontSize + '; color:' + curFontColor + ';">' + messages[num][1] + '</span>' + endStr;
+tipcss.backgroundColor = curBgColor;
+tooltip.innerHTML = tip;
+}
+if (!tipFollowMouse) positionTip(evt);
+else t1=setTimeout("tipcss.visibility='visible'",100);
+}
+
+var mouseX, mouseY;
+function trackMouse(evt) {
+mouseX = (ns4||ns5)? evt.pageX: window.event.clientX + document.body.scrollLeft;
+mouseY = (ns4||ns5)? evt.pageY: window.event.clientY + document.body.scrollTop;
+if (tipOn) positionTip(evt);
+}
+
+/////////////////////////////////////////////////////////////
+// positionTip function
+// If tipFollowMouse set false, so trackMouse function
+// not being used, get position of mouseover event.
+// Calculations use mouseover event position, 
+// offset amounts and tooltip width to position
+// tooltip within window.
+/////////////////////////////////////////////////////////////
+function positionTip(evt) {
+if (!tipFollowMouse) {
+mouseX = (ns4||ns5)? evt.pageX: window.event.clientX + document.body.scrollLeft;
+mouseY = (ns4||ns5)? evt.pageY: window.event.clientY + document.body.scrollTop;
+}
+// tooltip width and height
+var tpWd = (ns4)? tooltip.width: (ie4||ie5)? tooltip.clientWidth: tooltip.offsetWidth;
+var tpHt = (ns4)? tooltip.height: (ie4||ie5)? tooltip.clientHeight: tooltip.offsetHeight;
+// document area in view (subtract scrollbar width for ns)
+var winWd = (ns4||ns5)? window.innerWidth-20+window.pageXOffset: document.body.clientWidth+document.body.scrollLeft;
+var winHt = (ns4||ns5)? window.innerHeight-20+window.pageYOffset: document.body.clientHeight+document.body.scrollTop;
+// check mouse position against tip and window dimensions
+// and position the tooltip 
+if ((mouseX+offX+tpWd)>winWd) 
+tipcss.left = (ns4)? mouseX-(tpWd+offX): mouseX-(tpWd+offX)+"px";
+else tipcss.left = (ns4)? mouseX+offX: mouseX+offX+"px";
+if ((mouseY+offY+tpHt)>winHt) 
+tipcss.top = (ns4)? winHt-(tpHt+offY): winHt-(tpHt+offY)+"px";
+else tipcss.top = (ns4)? mouseY+offY: mouseY+offY+"px";
+if (!tipFollowMouse) t1=setTimeout("tipcss.visibility='visible'",100);
+}
+
+function hideTip() {
+if (!tooltip) return;
+t2=setTimeout("tipcss.visibility='hidden'",100);
+tipOn = false;
+}
+
+//-->
+</script>
+
+
+
+
+
+<style>
+<!--
+* {color:#000000; font-family:verdana; font-size:11px;}
+a {color:#0099FF; font-family:verdana; font-size:11px; text-decoration: none} 
+a:hover {color:#5EC054; font-family:verdana; font-size:11px; color: #5EC054; text-decoration: none;} 
+-->
+</style>
+
+
+
+
+</head>
+
+<body topmargin="0" bgcolor="#FFFFFF">
+
+
+
+<div align="center">
+  <center>
+	  	  <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" width="728" id="AutoNumber1" background="images/layoutbg.gif">
+    <tr>
+      <td width="100%">
+      <img border="0" src="images/header.jpg" alt="Duke of Edinburgh Award Scheme" width="728"></td>
+    </tr>
+    <tr>
+      <td width="100%">
+			
+
+      </td>
+    </tr>
+    <tr>
+      <td width="100%">
+      <img border="0" src="images/adbottom.gif" width="728" height="6"></td>
+    </tr>
+    <tr>
+      <td width="100%">
+      <img border="0" src="images/bar01.gif" width="2" height="15">
+
+<a href="home.html"><img border="0" src="images/channel01.gif" width="93" height="15"></a><a href="day1.html"><img border="0" src="images/channel02.gif" width="93" height="15"></a><a href="day2.html"><img border="0" src="images/channel03.gif" width="93" height="15"></a><a href="day3.html"><img border="0" src="images/channel04.gif" width="93" height="15"></a><a href="day4.html"><img border="0" src="images/channel05.gif" width="93" height="15"></a><a href="pictures.html"><img border="0" src="images/channel06.gif" width="93" height="15"></a><a href="maps.html"><img border="0" src="images/channel07.gif" width="93" height="15"></a>
+     </td>
+    </tr>
+    <tr>
+      <td width="100%">
+      <img border="0" src="images/barbottom.gif" width="728" height="20"></td>
+    </tr>
+    <tr>
+      <td width="100%">
+      <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" width="100%" id="AutoNumber6">
+        <tr>
+          <td width="520" valign="top">
+      <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" width="100%" id="AutoNumber2">
+        <tr>
+          <td width="100%" valign="top">
+          <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" width="100%" id="AutoNumber3">
+                   <tr>
+          <tr>
+
+            </tr>
+          </table>
+          </td>
+                 <tr>
+          <td width="100%" valign="top" colspan="2" height="11">
+          </td>
+        </tr>
+ 
+
+
+<td width="100%" valign="top" colspan="2" height="11">
+          <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" width="100%" id="AutoNumber4">
+            <tr>
+              <td width="13">&nbsp;</td>
+              <td width="500" valign="top">
+              
+          
+          <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" width="100%" id="AutoNumber4">
+            <tr>
+              <td width="500" valign="top">
+							
+
+<table border="0" cellpadding="3" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="100%" id="AutoNumber5">
+  <tr>
+    <td width="100%"><font style="font-size: 12px" face="Verdana" color="black">
+
+<img src="images/dayfour.jpg" width="500">
+<div align="justify">
+
+<p>
+
+<a name="partI"></a><img src="images/day4_1.jpg" border=0 usemap="#imgmap2">
+
+<map name="imgmap2">
+    <area shape="rect" coords="172,106,204,135" a href="images/LakeDistrict_DofE048.jpg" onmouseover="doTooltip(event,0)" onmouseout="hideTip()">
+    <area shape="rect" coords="209,214,241,249" a href="images/LakeDistrict_DofE049.jpg" onmouseover="doTooltip(event,1)" onmouseout="hideTip()">
+    <area shape="rect" coords="160,388,191,420" a href="images/LakeDistrict_DofE050.jpg" onmouseover="doTooltip(event,2)" onmouseout="hideTip()">
+    </map>
+
+<p>With the possibility of returning that day and also hastened by the intolerable midges, Day 4 was the only day we left before or on our predicted time. We retraced our final steps from Day 3 in the glorious sunshine until we could head south on the Cumbrian Way. The walking was, for the first time, due to the lack of rain, enjoyable and as one of the other groups had the same route as us, we walked together - so our morale was high.<p>The Cumbrian Way was one of the best paths we walked on and the valley floor was completely flat. We had plenty of time and this day was our easiest and shortest, all of which made the walk more fun.<p>
+
+<a name="partII"></a><img src="images/day4_2.jpg" border=0 usemap="#imgmap3">
+
+<map name="imgmap3">
+    <area shape="rect" coords="146,101,179,130" a href="images/LakeDistrict_DofE051.jpg" onmouseover="doTooltip(event,3)" onmouseout="hideTip()">
+    <area shape="rect" coords="92,360,121,389" a href="images/LakeDistrict_DofE053.jpg" onmouseover="doTooltip(event,4)" onmouseout="hideTip()">
+    </map>
+
+<p>Our solitary climb was actually quite steep but it didn't really affect us as all other circumstances were considerably better than before. After resting and almost going in the wrong direction at the top we made our way down the other side. This descent was very similar to the final one of Day 3 but because it had not rained we found it much easier.<p>At the bottom we rested as a factor that had not yet affected us, the heat, now hindered progress. Not for long though as we tried to make it before 1.00pm along the easiest terrain of the trip. We walked much quicker than before though the valley: at about 6kmph unlike our scheduled 3kmph.<p>
+
+<a name="partIII"></a><img src="images/day4_3.jpg" border=0 usemap="#imgmap4">
+
+<map name="imgmap4">
+    <area shape="rect" coords="83,113,111,139" a href="images/LakeDistrict_DofE054.jpg" onmouseover="doTooltip(event,5)" onmouseout="hideTip()">
+    </map>
+
+<p>We had lunch by the 'Old Hotel' which was for the first time pleasurable. On leaving we thought that we saw our minibus parked in the car park a way off but decided it couldn't be: however we later learned that had we gone to look closer we would have found that it was ours and that we needn't have walked the final 5km or so.<p>We crossed the river and climbed steeply for about 100m and then walked around the side of a mountain. Although the knowledge that we were so close spurred us on, as progress slowed it also got more frustrating that we had to keep going.<p>
+
+<a name="partIV"></a><img src="images/day4_4.jpg" border=0 usemap="#imgmap5">
+
+<map name="imgmap5">
+    <area shape="rect" coords="117,108,147,136" a href="images/LakeDistrict_DofE055.jpg" onmouseover="doTooltip(event,6)" onmouseout="hideTip()">
+    <area shape="rect" coords="314,196,342,225" a href="images/LakeDistrict_DofE056.jpg" onmouseover="doTooltip(event,7)" onmouseout="hideTip()">
+    <area shape="rect" coords="415,238,446,266" a href="images/LakeDistrict_DofE057.jpg" onmouseover="doTooltip(event,8)" onmouseout="hideTip()">
+    </map>
+
+<p>By now the only thing that seemed to matter was to get to the car park by 1.00pm but the path seemed to continually go on. When we did reach Elterwater we took a wrong turning and thought we wouldn't make it so we decided to run. Fortunately we did make it, although we were disappointed to here that it didn't matter because we weren't going home that day anyway.<p>Once we had finished relief poured over our bodies, having walked over 80km in 4 days. Later that night we found out that we had all passed and so that the expedition had been totally successful.
+
+
+
+
+</div></td>
+
+
+
+
+</tr>
+</table>
+
+
+
+              </td>
+              	
+</td>
+              <td width="11">&nbsp;</td>
+            </tr>
+          </table>
+              </td>
+            </tr>
+          </table>
+          </td>
+        </tr>
+      </table>
+      
+          </td>
+          <td width="190" valign="top">
+          <font style="font-size: 12px" face="Verdana" color="black"><p><center><span id=clock style="position:relative;"></span></center><p>
+          <b>Page Navigation</b><br>
+          » <a href="#partI" class="page">Part I</a><br>
+          » <a href="#partII" class="page">Part II</a><br>
+          » <a href="#partIII" class="page">Part III</a><br>
+          » <a href="#partIV" class="page">Part IV</a><br>
+                    <p>
+          <b>Links</b><br>
+          » <a href="home.html">Home</a><br>
+          » <a href="http://www.theaward.org/">theaward.org</a><br>
+          » <a href="http://www.abingdon.org.uk/">Abingdon School</a><br>
+                    <p>
+          <b>Trip Summary</b><br>
+          <a href="day1.html">Day 1</a><br>
+          Birkett Mire - Waterside House<br>(22 kilometres)<p>
+          <a href="day2.html">Day 2</a><br>
+          Waterside House - Gillside<br>(21 kilometres)<p>
+          <a href="day3.html">Day 3</a><br>
+          Gillside - Stonethwaite<br>(20 kilometres)<p>
+          <a href="day4.html">Day 4</a><br>
+          Stonethwaite - Elterwater<br>(18 kilometres)<p>
+          <br><p>
+          <b>Weather Forecast - <br>Day Four</b><p>
+          <center><img src="images/weather4.jpg"></center><p>Perfect weather: it didn't even hint at raining, and there was never a cloud in the sky. Quite unbeilevable considering what we had had the 3 previous days, however, this was what we had been expecting before arriving.<p>
+          <b>Day Statistics</b><br>
+          » Total Distance:<p><center>18.6 Kilometres</center><p>
+          » Intended Departure Time:<p><center>7.15am</center><p>
+          » Actual Departure Time:<p><center>7.00am</center><p>
+          » Arrival Time:<p><center>12.55pm</center><p>
+          » Terrain:<p><center>Mostly flat. Only one climb in the whole day and the vast majority was flat and along the Cumbrian Way which was a superb path. A nice easy day to finish with.</center><p>
+
+
+                             </font></td>
+
+
+
+
+     </tr>
+    </table>
+      </td>
+    </tr>
+    <tr>
+      <td width="100%">
+      <img border="0" src="images/bottom.gif" width="728" height="8"></td>
+    </tr>
+    </table>
+  </center>
+</div>
+
+<p><br><center>© 2005 Matthew Coffey. All rights reserved.
+
+<div id="tipDiv" style="position:absolute; visibility:hidden; z-index:100"></div>
+
+</body>
+</html>
+ 
